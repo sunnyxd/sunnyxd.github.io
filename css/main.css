@@ -468,11 +468,11 @@ body {
 .header-inner {
   margin: 0 auto;
   padding: 100px 0 70px;
-  width: 700px;
+  width: 800px;
 }
 @media (min-width: 1600px) {
   .container .header-inner {
-    width: 900px;
+    width: 100px;
   }
 }
 .main {
@@ -480,11 +480,11 @@ body {
 }
 .main-inner {
   margin: 0 auto;
-  width: 700px;
+  width: 800px;
 }
 @media (min-width: 1600px) {
   .container .main-inner {
-    width: 900px;
+    width: 100px;
   }
 }
 .footer {
@@ -497,11 +497,11 @@ body {
 .footer-inner {
   box-sizing: border-box;
   margin: 20px auto;
-  width: 700px;
+  width: 800px;
 }
 @media (min-width: 1600px) {
   .container .footer-inner {
-    width: 900px;
+    width: 100px;
   }
 }
 pre,
@@ -510,8 +510,8 @@ pre,
   margin: 20px 0;
   padding: 15px;
   font-size: 13px;
-  color: #eaeaea;
-  background: #000;
+  color: #ccc;
+  background: #2d2d2d;
   line-height: 1.6;
 }
 pre,
@@ -528,7 +528,7 @@ code {
 }
 pre code {
   padding: 0;
-  color: #eaeaea;
+  color: #ccc;
   background: none;
   text-shadow: none;
 }
@@ -548,7 +548,7 @@ pre code {
 }
 .highlight figcaption {
   font-size: 0.85em;
-  color: #969896;
+  color: #999;
   line-height: 1em;
   margin-bottom: 1em;
 }
@@ -572,7 +572,7 @@ pre code {
   height: 20px;
 }
 pre .comment {
-  color: #969896;
+  color: #999;
 }
 pre .variable,
 pre .attribute,
@@ -586,7 +586,7 @@ pre .html .doctype,
 pre .css .id,
 pre .css .class,
 pre .css .pseudo {
-  color: #d54e53;
+  color: #f2777a;
 }
 pre .number,
 pre .preprocessor,
@@ -595,7 +595,7 @@ pre .literal,
 pre .params,
 pre .constant,
 pre .command {
-  color: #e78c45;
+  color: #f99157;
 }
 pre .ruby .class .title,
 pre .css .rules .attribute,
@@ -608,11 +608,11 @@ pre .xml .cdata,
 pre .special,
 pre .number,
 pre .formula {
-  color: #b9ca4a;
+  color: #9c9;
 }
 pre .title,
 pre .css .hexcolor {
-  color: #70c0b1;
+  color: #6cc;
 }
 pre .function,
 pre .python .decorator,
@@ -622,11 +622,11 @@ pre .ruby .title .keyword,
 pre .perl .sub,
 pre .javascript .title,
 pre .coffeescript .title {
-  color: #7aa6da;
+  color: #69c;
 }
 pre .keyword,
 pre .javascript .function {
-  color: #c397d8;
+  color: #c9c;
 }
 .full-image.full-image.full-image {
   border: none;
@@ -1534,7 +1534,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #5466ff;
+  background: #af25ff;
 }
 .links-of-blogroll {
   font-size: 13px;
