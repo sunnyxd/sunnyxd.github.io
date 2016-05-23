@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.sunnyxd.com/"/>
-  <updated>2016-04-22T09:45:32.406Z</updated>
+  <updated>2016-05-23T06:56:17.140Z</updated>
   <id>http://www.sunnyxd.com/</id>
   
   <author>
@@ -14,6 +14,101 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title></title>
+    <link href="http://www.sunnyxd.com/2016/05/23/curl%E5%91%BD%E4%BB%A4%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/"/>
+    <id>http://www.sunnyxd.com/2016/05/23/curl命令常用操作/</id>
+    <published>2016-05-23T06:52:56.339Z</published>
+    <updated>2016-05-23T06:56:17.140Z</updated>
+    
+    <content type="html">&lt;hr&gt;
+&lt;p&gt;title: curl命令常用操作&lt;br&gt;date: 2016-05-23 14:55:10&lt;br&gt;tag:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Linux&lt;/li&gt;
+&lt;li&gt;curl&lt;br&gt;category:&lt;/li&gt;
+&lt;li&gt;Linux命令&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;##curl是做什么的&lt;br&gt;curl是利用URL语法在命令行方式下工作的开源文件传输工具，它支持http,https,ftp,ftps,telnet等多种协议。&lt;br&gt;常用于模拟提交web数据，与网站API交互(POST/GET请求，可以自定义发送header)，也可以用于下载(PS:专职下载还是用wget，支持recursive)。&lt;/p&gt;
+&lt;p&gt;##常用操作&lt;/p&gt;
+&lt;p&gt;###GET请求(-G/–get/省略)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl http://www.xxxx.com/show?userId=111
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###POST请求&lt;/p&gt;
+&lt;p&gt;####以application/x-www-url-encoded 方式发送数据(-d/–data)：&lt;br&gt;    curl -d “username=sunnyxd&amp;amp;password=12345” URL&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;    &lt;/p&gt;
+&lt;p&gt;####以multipart/form-data 的方式发送数据(上传文件，-F/–form)：&lt;br&gt;    curl -F filename=@/home/sunnyxd/file.tar.gz -F username=sunnyxd URL&lt;/p&gt;
+&lt;p&gt;###设置cookie&lt;/p&gt;
+&lt;p&gt;####使用cookie (-b/–cookie)&lt;br&gt;    curl URL -b “username=sunnyxd;password=12345”&lt;/p&gt;
+&lt;p&gt;####保存cookie (-c/–cookie-jar)&lt;br&gt;    curl -d “username=sunnyxd&amp;amp;password=12345” -c ./cookie.txt URL 操作结束后把cookie写入文件cookie.txt&lt;/p&gt;
+&lt;p&gt;###抓取页面(下载)&lt;/p&gt;
+&lt;p&gt;抓取页面保存到test.html：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -o test.html URL
+或者curl URL &amp;gt; test.html
+
+-O 下载特定文件，url需要指定到一个具体的文件
+-C - 断点续传，- 自动推断出正确的续传位置，或者直接指定相应的字节偏移
+-f 显示抓取错误信息
+-x ip:port 使用代理
+-s 不显示进度信息
+-e/--referer 伪造来源地址
+--limit-rate 50k 限制下载速度
+--max-filesize bytes 指定可下载的最大文件大小
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###格式化显示响应信息&lt;br&gt;-w 一次完整且成功的操作后输出指定格式的内容到标准输出。&lt;/p&gt;
+&lt;p&gt;####查看接口响应时间&lt;br&gt;    curl -o /dev/null -s -w “%{time_connect}:%{time_starttransfer}:%{time_total}\n” URL&lt;br&gt;    第一个字段，是从命令启动到链接上用的时间&lt;br&gt;    第二个字段，是开始传输数据所用的时间&lt;br&gt;    第三个字段，是完成传输所用的时间&lt;/p&gt;
+&lt;p&gt;####查看页面是否可用&lt;br&gt;    curl -o /dev/null -s -w %{http_code} URL&lt;/p&gt;
+&lt;p&gt;监控接口可用性的一个简单demo：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#!/bin/bash
+echo &amp;quot;check result:&amp;quot;
+cat monitor_url | while read line
+do
+status_code=`curl -o /dev/null -s -w %{http_code} $line`
+if [ $status_code -eq 200 ]
+then
+echo ${line}&amp;quot;is ok&amp;quot;
+else
+echo ${line}&amp;quot;is fail&amp;quot;
+fi
+done
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;curl -w详细介绍：&lt;a href=&quot;http://www.letuknowit.com/post/17.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://www.letuknowit.com/post/17.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;###设置浏览器代理 (-A/–user-agent)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl URL -A &amp;quot;Mozilla/5.0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###只打印响应头部信息&lt;/p&gt;
+&lt;p&gt;通过-I或者–head可以只打印出HTTP头部信息：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -I URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###用户认证(-u/–user)&lt;/p&gt;
+&lt;p&gt;用于HTTP或者FTP的认证，可以指定密码，也可以不指定密码在后续操作中输入密码：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -u user:pwd URL
+curl -u user URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###通用头部信息传递(-H/–header)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -H &amp;quot;Host:127.0.0.1&amp;quot; -H &amp;quot;accept-language:zh-cn&amp;quot; URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###自动跳转到新网址&lt;br&gt;有的网址是自动跳转的。使用-L参数，curl就会跳转到新的网址。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -L URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###设置请求超时时间&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl --connect-timeout seconds URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###设置最大传输时间(-m/–max-time)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -m seconds URL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;参数详细介绍请看这里：&lt;a href=&quot;http://man.linuxde.net/curl&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://man.linuxde.net/curl&lt;/a&gt;&lt;br&gt;参考文章：&lt;a href=&quot;http://blog.csdn.net/xifeijian/article/details/9367339&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://blog.csdn.net/xifeijian/article/details/9367339&lt;/a&gt;&lt;/p&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;hr&gt;
+&lt;p&gt;title: curl命令常用操作&lt;br&gt;date: 2016-05-23 14:55:10&lt;br&gt;tag:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Linux&lt;/li&gt;
+&lt;li&gt;curl&lt;br&gt;category:&lt;/li&gt;
+&lt;li&gt;Linux命令&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;##curl是做什么的&lt;br&gt;curl是利用URL语法在命令行方式下工作的开源文件传输工具，它支持http,https,ftp,ftps,telnet等多种协议。&lt;br&gt;常用于模拟提交web数据，与网站API交互(POST/GET请求，可以自定义发送header)，也可以用于下载(PS:专职下载还是用wget，支持recursive)。&lt;/p&gt;
+&lt;p&gt;##常用操作&lt;/p&gt;
+&lt;p&gt;###GET请求(-G/–get/省略)&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl http://www.xxxx.com/show?userId=111
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;###POST请求&lt;/p&gt;
+&lt;p&gt;####以application/x-www-url-encoded 方式发送数据(-d/–data)：&lt;br&gt;    curl -d “username=sunnyxd&amp;amp;password=12345” URL&lt;br&gt;
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>理解JavaScript中的作用域和作用域链</title>
