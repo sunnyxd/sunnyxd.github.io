@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.sunnyxd.com/"/>
-  <updated>2016-06-28T06:05:19.838Z</updated>
+  <updated>2016-06-28T06:11:35.366Z</updated>
   <id>http://www.sunnyxd.com/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://www.sunnyxd.com/2016/06/28/Java%20NIO%E6%B5%85%E6%9E%90/"/>
     <id>http://www.sunnyxd.com/2016/06/28/Java NIO浅析/</id>
     <published>2016-06-28T06:00:55.000Z</published>
-    <updated>2016-06-28T06:05:19.838Z</updated>
+    <updated>2016-06-28T06:11:35.366Z</updated>
     
     <content type="html">&lt;h2 id=&quot;准备知识&quot;&gt;&lt;a href=&quot;#准备知识&quot; class=&quot;headerlink&quot; title=&quot;准备知识&quot;&gt;&lt;/a&gt;准备知识&lt;/h2&gt;&lt;h3 id=&quot;同步、异步、阻塞、非阻塞&quot;&gt;&lt;a href=&quot;#同步、异步、阻塞、非阻塞&quot; class=&quot;headerlink&quot; title=&quot;同步、异步、阻塞、非阻塞&quot;&gt;&lt;/a&gt;同步、异步、阻塞、非阻塞&lt;/h3&gt;&lt;p&gt;同步和异步说的是服务端消息的通知机制，阻塞和非阻塞说的是客户端线程的状态。&lt;br&gt;已客户端一次网络请求为例做简单说明：&lt;/p&gt;
 &lt;ul&gt;
@@ -123,7 +123,7 @@
     
     </summary>
     
-      <category term="web前端" scheme="http://www.sunnyxd.com/categories/web%E5%89%8D%E7%AB%AF/"/>
+      <category term="Java" scheme="http://www.sunnyxd.com/categories/Java/"/>
     
     
       <category term="NIO" scheme="http://www.sunnyxd.com/tags/NIO/"/>
