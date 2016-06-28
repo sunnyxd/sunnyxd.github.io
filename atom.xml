@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.sunnyxd.com/"/>
-  <updated>2016-06-28T06:11:35.366Z</updated>
+  <updated>2016-06-28T06:20:52.145Z</updated>
   <id>http://www.sunnyxd.com/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://www.sunnyxd.com/2016/06/28/Java%20NIO%E6%B5%85%E6%9E%90/"/>
     <id>http://www.sunnyxd.com/2016/06/28/Java NIO浅析/</id>
     <published>2016-06-28T06:00:55.000Z</published>
-    <updated>2016-06-28T06:11:35.366Z</updated>
+    <updated>2016-06-28T06:20:52.145Z</updated>
     
     <content type="html">&lt;h2 id=&quot;准备知识&quot;&gt;&lt;a href=&quot;#准备知识&quot; class=&quot;headerlink&quot; title=&quot;准备知识&quot;&gt;&lt;/a&gt;准备知识&lt;/h2&gt;&lt;h3 id=&quot;同步、异步、阻塞、非阻塞&quot;&gt;&lt;a href=&quot;#同步、异步、阻塞、非阻塞&quot; class=&quot;headerlink&quot; title=&quot;同步、异步、阻塞、非阻塞&quot;&gt;&lt;/a&gt;同步、异步、阻塞、非阻塞&lt;/h3&gt;&lt;p&gt;同步和异步说的是服务端消息的通知机制，阻塞和非阻塞说的是客户端线程的状态。&lt;br&gt;已客户端一次网络请求为例做简单说明：&lt;/p&gt;
 &lt;ul&gt;
@@ -34,7 +34,7 @@
 &lt;li&gt;DMA把数据读取到内核空间的缓冲区(读就绪)&lt;/li&gt;
 &lt;li&gt;内核将数据拷贝到用户空间。&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;img src=&quot;/img/bVyzHw&quot; alt=&quot;io%E5%8E%9F%E7%90%86.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/io%E5%8E%9F%E7%90%86.png&quot; alt=&quot;io%E5%8E%9F%E7%90%86.png&quot;&gt;&lt;/p&gt;
 &lt;p&gt;内核空间是用户代码无法控制的，所以用户空间在读取之前，首先会判断是否已经读就绪。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;同步IO&lt;br&gt;当用户发出IO请求操作之后，内核会去查看要读取的数据是否就绪，如果数据没有就绪，就一直等待。需要通过用户线程或者内核不断地去轮询数据是否就绪，当数据就绪时，再将数据从内核拷贝到用户空间。&lt;/li&gt;
@@ -56,14 +56,14 @@
 &lt;li&gt;异步I/O （asynchronous I/O (the POSIX aio_functions)）&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h4 id=&quot;IO复用模型-IO多路复用&quot;&gt;&lt;a href=&quot;#IO复用模型-IO多路复用&quot; class=&quot;headerlink&quot; title=&quot;IO复用模型(IO多路复用)&quot;&gt;&lt;/a&gt;IO复用模型(IO多路复用)&lt;/h4&gt;&lt;p&gt;简言之，就是通过单个线程(进程)来管理多IO流。如图：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/img/bVyzHH&quot; alt=&quot;io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.png&quot; alt=&quot;io%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.png&quot;&gt;&lt;/p&gt;
 &lt;p&gt;IO多路复用避免阻塞在IO上，原本为多进程或多线程来接收多个连接的消息变为单进程或单线程保存多个socket的状态后轮询处理。只有当某个socket读写就绪后，才真正调用实际的IO读写操作。这样可以避免线程切换带来的开销。&lt;/p&gt;
 &lt;p&gt;实现IO多路复用需要函数来支持，就是你说的linux下的select、poll、epoll以及win下 iocp和BSD的kqueue。这几个函数也会使进程阻塞，但是和阻塞I/O所不同的是，它可以同时阻塞多个I/O操作。而且可以同时对多个读操作，多个写操作的I/O准备状态进行检测。&lt;/p&gt;
 &lt;p&gt;IO多路复用为何比非阻塞IO模型的效率高是因为在非阻塞IO中，不断地询问socket状态是通过用户线程去进行的，而在IO多路复用中，轮询每个socket状态是内核在进行的，这个效率要比用户线程要高的多。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/img/bVyzHQ&quot; alt=&quot;io%E5%A4%8D%E7%94%A8%E6%A8%A1%E5%9E%8B.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/io%E5%A4%8D%E7%94%A8%E6%A8%A1%E5%9E%8B.png&quot; alt=&quot;io%E5%A4%8D%E7%94%A8%E6%A8%A1%E5%9E%8B.png&quot;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;五种IO模型以及select、poll、epoll的详细介绍推荐大家看这篇文章&lt;/strong&gt; &amp;rarr;&lt;br&gt;&lt;a href=&quot;http://blog.csdn.net/hguisu/article/details/7453390&quot; title=&quot;socket阻塞与非阻塞，同步与异步、I/O模型&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;socket阻塞与非阻塞，同步与异步、I/O模型&lt;/a&gt;&lt;/p&gt;
 &lt;h4 id=&quot;理解Reactor和Proactor模式&quot;&gt;&lt;a href=&quot;#理解Reactor和Proactor模式&quot; class=&quot;headerlink&quot; title=&quot;理解Reactor和Proactor模式&quot;&gt;&lt;/a&gt;理解Reactor和Proactor模式&lt;/h4&gt;&lt;p&gt;在Reactor模式中，会先对每个client注册感兴趣的事件，然后有一个线程专门去轮询每个client是否有事件发生，当有事件发生时(读写就绪)，便顺序处理每个事件，当所有事件处理完之后，便再转去继续轮询,如图所示：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/img/bVyzHT&quot; alt=&quot;reactor%E6%A8%A1%E5%BC%8F.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/reactor%E6%A8%A1%E5%BC%8F.png&quot; alt=&quot;reactor%E6%A8%A1%E5%BC%8F.png&quot;&gt;&lt;/p&gt;
 &lt;p&gt;从这里可以看出，多路复用IO就是采用Reactor模式。注意，上面的图中展示的是顺序处理每个事件，当然为了提高事件处理速度，可以通过多线程或者线程池的方式来处理事件。&lt;br&gt;在Proactor模式中，当检测到有事件发生时，会新起一个异步操作，然后交由内核线程去处理，当内核线程完成IO操作之后，发送一个通知告知操作已完成，可以得知，异步IO模型采用的就是Proactor模式。&lt;/p&gt;
 &lt;p&gt;这部分摘选自：&lt;a href=&quot;http://www.cnblogs.com/dolphin0520/p/3916526.html&quot; title=&quot;Java NIO：浅析I/O模型&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Java NIO：浅析I/O模型&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&quot;Java-NIO介绍&quot;&gt;&lt;a href=&quot;#Java-NIO介绍&quot; class=&quot;headerlink&quot; title=&quot;Java NIO介绍&quot;&gt;&lt;/a&gt;Java NIO介绍&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;Channels and Buffers（通道和缓冲区）&lt;/strong&gt;&lt;br&gt;标准的IO基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。&lt;/p&gt;
@@ -104,7 +104,7 @@
 &lt;li&gt;ShortBuffer&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&quot;Selector&quot;&gt;&lt;a href=&quot;#Selector&quot; class=&quot;headerlink&quot; title=&quot;Selector&quot;&gt;&lt;/a&gt;Selector&lt;/h3&gt;&lt;p&gt;Selector（选择器）是Java NIO中能够检测一到多个通道，并能够知晓通道是否为诸如读写事件做好准备的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/img/bVyzIi&quot; alt=&quot;nio.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/nio.png&quot; alt=&quot;nio.png&quot;&gt;&lt;/p&gt;
 &lt;h4 id=&quot;为什么使用Selector&quot;&gt;&lt;a href=&quot;#为什么使用Selector&quot; class=&quot;headerlink&quot; title=&quot;为什么使用Selector?&quot;&gt;&lt;/a&gt;为什么使用Selector?&lt;/h4&gt;&lt;p&gt;仅用单个线程来处理多个Channels的好处是，只需要更少的线程来处理通道。事实上，可以只用一个线程处理所有的通道。对于操作系统来说，线程之间上下文切换的开销很大，而且每个线程都要占用系统的一些资源（如内存）。因此，使用的线程越少越好。&lt;/p&gt;
 &lt;p&gt;但是，需要记住，现代的操作系统和CPU在多任务方面表现的越来越好，所以多线程的开销随着时间的推移，变得越来越小了。实际上，如果一个CPU有多个内核，不使用多任务可能是在浪费CPU能力。不管怎么说，关于那种设计的讨论应该放在另一篇不同的文章中。在这里，只要知道使用Selector能够处理多个通道就足够了。&lt;/p&gt;
 &lt;h4 id=&quot;NIO如何实现非阻塞？&quot;&gt;&lt;a href=&quot;#NIO如何实现非阻塞？&quot; class=&quot;headerlink&quot; title=&quot;NIO如何实现非阻塞？&quot;&gt;&lt;/a&gt;NIO如何实现非阻塞？&lt;/h4&gt;&lt;p&gt;服务器上所有Channel需要向Selector注册，而Selector则负责监视这些Socket的IO状态(观察者)，当其中任意一个或者多个Channel具有可用的IO操作时，该Selector的select()方法将会返回大于0的整数，该整数值就表示该Selector上有多少个Channel具有可用的IO操作，并提供了selectedKeys（）方法来返回这些Channel对应的SelectionKey集合(一个SelectionKey对应一个就绪的通道)。正是通过Selector，使得服务器端只需要不断地调用Selector实例的select()方法即可知道当前所有Channel是否有需要处理的IO操作。&lt;br&gt;注：java NIO就是多路复用IO，jdk7之后底层是epoll模型。&lt;/p&gt;
