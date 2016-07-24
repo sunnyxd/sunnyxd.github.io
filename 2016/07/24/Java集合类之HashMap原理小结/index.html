@@ -1,0 +1,825 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="HashMap," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="sunnyxd's blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="1. 认识HashMapHashMap是用来存储key-value键值对的数据结构。当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。
+它的底层采用entry数组来保存所有的key-value对。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java集合类之HashMap原理小结">
+<meta property="og:url" content="http://www.sunnyxd.com/2016/07/24/Java集合类之HashMap原理小结/index.html">
+<meta property="og:site_name" content="sunnyxd's blog">
+<meta property="og:description" content="1. 认识HashMapHashMap是用来存储key-value键值对的数据结构。当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。
+它的底层采用entry数组来保存所有的key-value对。">
+<meta property="og:image" content="http://7xnxzw.com1.z0.glb.clouddn.com/hashmap%E5%8E%9F%E7%90%86.png">
+<meta property="og:image" content="http://7xnxzw.com1.z0.glb.clouddn.com/concurrentHashMap.png">
+<meta property="og:updated_time" content="2016-07-24T09:05:52.378Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java集合类之HashMap原理小结">
+<meta name="twitter:description" content="1. 认识HashMapHashMap是用来存储key-value键值对的数据结构。当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。
+它的底层采用entry数组来保存所有的key-value对。">
+<meta name="twitter:image" content="http://7xnxzw.com1.z0.glb.clouddn.com/hashmap%E5%8E%9F%E7%90%86.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Java集合类之HashMap原理小结 | sunnyxd's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?eb916d5917b6ba284023654f920ded13";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">sunnyxd's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+<!--增加high一下功能-->
+  </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java集合类之HashMap原理小结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-24T17:03:55+08:00" content="2016-07-24">
+              2016-07-24
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/24/Java集合类之HashMap原理小结/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/24/Java集合类之HashMap原理小结/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/07/24/Java集合类之HashMap原理小结/" class="leancloud_visitors" data-flag-title="Java集合类之HashMap原理小结">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="1-认识HashMap"><a href="#1-认识HashMap" class="headerlink" title="1. 认识HashMap"></a>1. 认识HashMap</h2><p>HashMap是用来存储key-value键值对的数据结构。<br>当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。</p>
+<p>它的底层采用entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。</p>
+<p>如果两个Entry的key的hashCode()返回值相同，那它们的存储位置相同。如果这两个Entry的key通过equals()比较返回true，新添加Entry的value将覆盖集合中原有Entry的value，但key不会覆盖。如果这两个Entry的key通过equals()比较返回false，新添加的Entry将与集合中原有Entry形成Entry链，而且新添加的Entry位于Entry链的头部。我们来看下图：<a id="more"></a></p>
+<p><img src="http://7xnxzw.com1.z0.glb.clouddn.com/hashmap%E5%8E%9F%E7%90%86.png" alt="hashmap%E5%8E%9F%E7%90%86.png"><br>注：图片源自<a href="http://www.admin10000.com/document/3322.html" target="_blank" rel="external">http://www.admin10000.com/document/3322.html</a></p>
+<h2 id="2-小结"><a href="#2-小结" class="headerlink" title="2. 小结"></a>2. 小结</h2><p>HashMap底层实现：<code>数组+链表+红黑树</code><br>通常，只使用entry数组存放键值对，key的hashcode()值决定它的存放位置，equals()方法决定最终的值。<br>如果hash算法设计的足够好，是不会发生碰撞冲突的，但实际中肯定不存在这么完美的事情。<br>当key的hashcode()相同，equals()方法返回不同时，会在相同的位置上形成一个链表(LinkedList)，当链表长度大于8的时候，会转化成红黑树，链表的查找的时间复杂度为O(n)，而红黑树为O(lgn)，会提高查询的性能。<br>当entry数组不足以容纳更多的元素的时候，以负载因子为0.75，数组长度为20来说，当数组元素数到达15的时候，会自动触发一次resize操作，会把旧的数据映射到新的哈希表，数组扩容到原来的2倍。</p>
+<p><strong><em>resize在多线程环境下，可能产生条件竞争</em></strong><br>因为如果两个线程都发现HashMap需要重新调整大小了，它们会同时试着调整大小。<br>在调整大小的过程中，存储在LinkedList中的元素的次序会反过来，因为移动到新的bucket位置的时候，HashMap并不会将元素放在LinkedList的尾部，而是放在头部，这是为了避免<code>尾部遍历</code>(tail traversing，否则针对key的hashcode相同的Entry每次添加还要定位到尾节点)。<br>如果条件竞争发生了，可能出现环形链表。之后当我们get(key)操作时，就有可能发生死循环。<br>另外，既然都有并发的问题了，我们就该使用ConcurrentHashMap了。</p>
+<p><strong><em>不使用HashTable的原因</em></strong><br>它使用synchronized来保证线程安全，会锁住整个哈希表。在线程竞争激烈的情况下效率非常低下，当一个线程访问HashTable的同步方法时，其它线程访问HashTable的同步方法只能进入阻塞或轮询状态。</p>
+<h2 id="3-ConcurrentHashMap"><a href="#3-ConcurrentHashMap" class="headerlink" title="3. ConcurrentHashMap"></a>3. ConcurrentHashMap</h2><p>核心：采用segment分段锁来保护不同段的数据，是线程安全且高效的。<br>当多线程访问容器里不同段的数据时，线程间就不会存在锁竞争，从而可以有效提高并发访问效率。</p>
+<p><strong><em>ConcurrentHashMap类图</em></strong><br><img src="http://7xnxzw.com1.z0.glb.clouddn.com/concurrentHashMap.png" alt="concurrentHashMap.png"></p>
+<p>初始化中除了initialCapacity，loadFactor参数，还有一个重要的concurrency level，它决定了segment数组的长度(默认是16，长度需要是2的N次方，与采用的哈希算法有关)。<br>每次get/put操作都会通过hash算法定位到一个segment，然后再通过hash算法定位到具体的entry。<br>get操作是不需要加锁的，因为get方法里将要使用的共享变量都定义成了volatile。</p>
+<blockquote>
+<p>定义成volatile的变量，能够在线程之间保持可见性，能够被多线程同时读，并且保证不会读到过期的值，但是只能被单线程写（有一种情况可以被多线程写，就是写入的值不依赖于原值，像直接set值就可以，而i++这样的操作就是非线程安全的）。</p>
+</blockquote>
+<p>put方法在操作共享变量时必须加锁，首先会定位到segment，然后在segment里进行插入操作。<br>size方法，需要统计每个segment中count变量的值，然后加和。但是我们拿到的count值累加前可能已经发生了变化，那么统计结果就不准确了。所以最安全的做法就是统计size的时候把所有segment的put，remove和clear方法全部锁住，但是这种做法显然非常低效。<br>ConcurrentHashMap的做法是先尝试2次通过不锁住segment的方式来统计各个segment大小，如果统计过程中，容器的count发生了变化，再采用加锁的方式统计所有segment的大小(put、remove和clear操作元素前都会将modCount进行加1，所以可以通过在统计前后比较modCount是否发生变化来得知容器大小是否发生了变化)。</p>
+<p><strong><em>关于ConcurrentHashMap的迭代</em></strong><br>使用了不同于传统集合的快速失败迭代器的另外一种迭代方式，我们称为<code>弱一致迭代器</code>。在这种迭代方式中，当iterator被创建后集合再发生改变就不再是抛出ConcurrentModificationException，取而代之是在改变时new新的数据从而不影响原有的数据，iterator完成后再将头指针替换为新的数据，这样iterator线程可以使用原来老的数据，而写线程也可以并发的完成改变。更重要的，这保证了多个线程并发执行的连续性和扩展性，是性能提升的关键。</p>
+<h2 id="4-拓展补充"><a href="#4-拓展补充" class="headerlink" title="4. 拓展补充"></a>4. 拓展补充</h2><h3 id="4-1-LinkedList"><a href="#4-1-LinkedList" class="headerlink" title="4.1 LinkedList"></a>4.1 LinkedList</h3><p>HashMap使用了链表来存储相同位置的Entry元素，接下来我们参考jdk源码实现一个简化版的LinkedList，代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 手动实现一个链表</span><br><span class="line"> * Date: 7/24/2016</span><br><span class="line"> * Time: 3:45 PM</span><br><span class="line"> *</span><br><span class="line"> * @author xiaodong.fan</span><br><span class="line"> */</span><br><span class="line">public class MyLinkedList&lt;E&gt; implements Iterable&lt;E&gt; &#123;</span><br><span class="line"></span><br><span class="line">  int size = 0;</span><br><span class="line">  int modCount = 0;</span><br><span class="line">  Node&lt;E&gt; first;</span><br><span class="line">  Node&lt;E&gt; last;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 添加元素</span><br><span class="line">   * @param e</span><br><span class="line">   */</span><br><span class="line">  public void add(E e) &#123;</span><br><span class="line">    final Node&lt;E&gt; l = last;</span><br><span class="line">    final Node&lt;E&gt; newNode = new Node&lt;&gt;(l, e, null);</span><br><span class="line">    last = newNode;</span><br><span class="line">    if (l == null)</span><br><span class="line">      first = newNode;</span><br><span class="line">    else</span><br><span class="line">      l.next = newNode;</span><br><span class="line">    size++;</span><br><span class="line">    modCount++;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 移除元素</span><br><span class="line">   * @param index</span><br><span class="line">   * @return E</span><br><span class="line">   */</span><br><span class="line">  public E remove(int index) &#123;</span><br><span class="line">    checkElementIndex(index);</span><br><span class="line"></span><br><span class="line">    Node&lt;E&gt; x = node(index);</span><br><span class="line">    final E element = x.item;</span><br><span class="line">    final Node&lt;E&gt; next = x.next;</span><br><span class="line">    final Node&lt;E&gt; prev = x.prev;</span><br><span class="line"></span><br><span class="line">    if (prev == null) &#123;</span><br><span class="line">      first = next;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      prev.next = next;</span><br><span class="line">      x.prev = null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (next == null) &#123;</span><br><span class="line">      last = prev;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      next.prev = prev;</span><br><span class="line">      x.next = null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    x.item = null;</span><br><span class="line">    size--;</span><br><span class="line">    modCount++;</span><br><span class="line">    return element;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 修改元素</span><br><span class="line">   * @param index</span><br><span class="line">   * @param element</span><br><span class="line">   * @return E</span><br><span class="line">   */</span><br><span class="line">  public E set(int index, E element) &#123;</span><br><span class="line">    checkElementIndex(index);</span><br><span class="line">    Node&lt;E&gt; x = node(index);</span><br><span class="line">    E oldVal = x.item;</span><br><span class="line">    x.item = element;</span><br><span class="line">    modCount++;</span><br><span class="line">    return oldVal;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 获取元素</span><br><span class="line">   * @param index</span><br><span class="line">   * @return E</span><br><span class="line">   */</span><br><span class="line">  public E get(int index) &#123;</span><br><span class="line">    checkElementIndex(index);</span><br><span class="line">    return node(index).item;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 迭代元素</span><br><span class="line">   * @return Iterator&lt;E&gt;</span><br><span class="line">   */</span><br><span class="line">  @Override</span><br><span class="line">  public Iterator&lt;E&gt; iterator() &#123;</span><br><span class="line">    return new Itr();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /*************************私有方法****************************/</span><br><span class="line">  // 数据节点</span><br><span class="line">  private static class Node&lt;E&gt; &#123;</span><br><span class="line">    E item;</span><br><span class="line">    Node&lt;E&gt; next;</span><br><span class="line">    Node&lt;E&gt; prev;</span><br><span class="line"></span><br><span class="line">    Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;</span><br><span class="line">      this.item = element;</span><br><span class="line">      this.next = next;</span><br><span class="line">      this.prev = prev;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 快速失败迭代器</span><br><span class="line">  private class Itr implements Iterator&lt;E&gt; &#123;</span><br><span class="line">    // 迭代当前位置</span><br><span class="line">    int cursor = 0;</span><br><span class="line"></span><br><span class="line">    // 上一个迭代位置</span><br><span class="line">    int lastRet = -1;</span><br><span class="line"></span><br><span class="line">    // 迭代过程中判断是否有并发修改</span><br><span class="line">    int expectedModCount = modCount;</span><br><span class="line"></span><br><span class="line">    public boolean hasNext() &#123;</span><br><span class="line">      return cursor != size;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public E next() &#123;</span><br><span class="line">      checkForComodification();</span><br><span class="line">      try &#123;</span><br><span class="line">        int i = cursor;</span><br><span class="line">        E next = get(i);</span><br><span class="line">        lastRet = i;</span><br><span class="line">        cursor = i + 1;</span><br><span class="line">        return next;</span><br><span class="line">      &#125; catch (IndexOutOfBoundsException e) &#123;</span><br><span class="line">        checkForComodification();</span><br><span class="line">        throw new NoSuchElementException();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void remove() &#123;</span><br><span class="line">      if (lastRet &lt; 0) &#123;</span><br><span class="line">        throw new IllegalStateException();</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      checkForComodification();</span><br><span class="line">      try &#123;</span><br><span class="line">        MyLinkedList.this.remove(lastRet);</span><br><span class="line">        if (lastRet &lt; cursor) &#123;</span><br><span class="line">          cursor--;</span><br><span class="line">        &#125;</span><br><span class="line">        lastRet = -1;</span><br><span class="line">        expectedModCount = modCount;</span><br><span class="line">      &#125; catch (IndexOutOfBoundsException e) &#123;</span><br><span class="line">        throw new ConcurrentModificationException();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    final void checkForComodification() &#123;</span><br><span class="line">      if (modCount != expectedModCount)</span><br><span class="line">        throw new ConcurrentModificationException();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  private Node&lt;E&gt; node(int index) &#123;</span><br><span class="line">    if (index &lt; (size &gt;&gt; 1)) &#123;</span><br><span class="line">      Node&lt;E&gt; x = first;</span><br><span class="line">      for (int i = 0; i &lt; index; i++)</span><br><span class="line">        x = x.next;</span><br><span class="line">      return x;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      Node&lt;E&gt; x = last;</span><br><span class="line">      for (int i = size - 1; i &gt; index; i--)</span><br><span class="line">        x = x.prev;</span><br><span class="line">      return x;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  private void checkElementIndex(int index) &#123;</span><br><span class="line">    if (!(index &gt;= 0 &amp;&amp; index &lt; size))</span><br><span class="line">      throw new IndexOutOfBoundsException(&quot;Index: &quot;+index+&quot;, Size: &quot;+size);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-实现LRU缓存"><a href="#4-2-实现LRU缓存" class="headerlink" title="4.2 实现LRU缓存"></a>4.2 实现LRU缓存</h3><p>LRU是Least Recently Used 的缩写，翻译过来就是“最近最少使用”，LRU缓存就是使用这种原理实现，简单的说就是缓存一定量的数据，当超过设定的阈值时就把一些过期的数据删除掉。那怎么确定删除哪条过期数据呢，采用LRU算法实现的话就是将最老的数据删掉。<br>LinkedHashMap自身已经实现了顺序存储，默认情况下是按照元素的添加顺序存储，也可以启用按照访问顺序存储(指定构造函数第3个参数为true即可)，也就是最近读取的数据放在最前面，最早读取的数据放在最后面。它还有一个判断是否删除最老数据的方法，默认是返回false，即不删除数据。所以我们可以使用LinkedHashMap很方便的实现LRU缓存。代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * LRU缓存(当容量达到最大值时，删除最近最少使用的记录)</span><br><span class="line"> * @param &lt;K&gt;</span><br><span class="line"> * @param &lt;V&gt;</span><br><span class="line"> */</span><br><span class="line">public class LRULinkedHashMap&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt; &#123;</span><br><span class="line">  </span><br><span class="line">  private static final long serialVersionUID = 1L;</span><br><span class="line">  private final int maxCapacity;</span><br><span class="line">  private static final float DEFAULT_LOAD_FACTOR = 0.75f;</span><br><span class="line">  private final Lock lock = new ReentrantLock();</span><br><span class="line"></span><br><span class="line">  public LRULinkedHashMap(int maxCapacity) &#123;</span><br><span class="line">    super(maxCapacity, DEFAULT_LOAD_FACTOR, true);</span><br><span class="line">    this.maxCapacity = maxCapacity;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  protected boolean removeEldestEntry(java.util.Map.Entry&lt;K, V&gt; eldest) &#123;</span><br><span class="line">    return size() &gt; maxCapacity;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  public V get(Object key) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      lock.lock();</span><br><span class="line">      return super.get(key);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  public V put(K key, V value) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      lock.lock();</span><br><span class="line">      return super.put(key, value);</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  public int size() &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      lock.lock();</span><br><span class="line">      return super.size();</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="5-参考文章"><a href="#5-参考文章" class="headerlink" title="5. 参考文章"></a>5. 参考文章</h2><p><a href="http://www.admin10000.com/document/3322.html" target="_blank" rel="external">HashMap的工作原理</a><br><a href="http://www.cnblogs.com/lzrabbit/p/3734850.html" target="_blank" rel="external">LRU缓存实现(Java)</a><br><a href="http://blog.csdn.net/wisgood/article/details/19338693" target="_blank" rel="external">Hashtable与ConcurrentHashMap区别</a><br><a href="http://ifeve.com/art-of-java-concurrent-program/" target="_blank" rel="external">《java并发编程的艺术》迷你书</a></p>
+
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+<div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton", disable="enable", onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}", style="cursor: pointer; border: 0; outline: 0; border-radius: 100%; padding: 0; margin: 0; letter-spacing: normal; text-transform: none; text-indent: 0px; text-shadow: none">
+    <span onmouseover="this.style.color='rgb(236,96,0)';this.style.background='rgb(204,204,204)'" onMouseOut="this.style.color='#fff';this.style.background='rgb(236,96,0)'" style="display: inline-block; width: 70px; height: 70px; border-radius: 100%; line-height: 81px; color: #fff; font: 400 35px/75px 'microsofty'; background: rgb(236,96,0)">赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="xiaodong.fan WeChat Pay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>微信打赏</p>
+      </div>
+    
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="xiaodong.fan Alipay" style="width: 200px; max-width: 100%; display: inline-block"/>
+        <p>支付宝打赏</p>
+      </div>
+    
+  </div>
+</div>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/HashMap/" rel="tag">#HashMap</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/10/SpringMVC工作原理/" rel="next" title="SpringMVC工作原理">
+                <i class="fa fa-chevron-left"></i> SpringMVC工作原理
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2016/07/24/Java集合类之HashMap原理小结/"
+     data-title="Java集合类之HashMap原理小结"
+     data-content=""
+     data-url="http://www.sunnyxd.com/2016/07/24/Java集合类之HashMap原理小结/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/07/24/Java集合类之HashMap原理小结/"
+           data-title="Java集合类之HashMap原理小结" data-url="http://www.sunnyxd.com/2016/07/24/Java集合类之HashMap原理小结/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="xiaodong.fan" />
+          <p class="site-author-name" itemprop="name">xiaodong.fan</p>
+          <p class="site-description motion-element" itemprop="description">sunnyxd的个人博客<br/>All good things are worth waiting and fighting for！</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://segmentfault.com/u/sunnyxd" target="_blank" title="segmentfault">
+                  
+                    <i class="fa fa-drupal"></i>
+                  
+                  segmentfault
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/1919834935" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-weibo"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-认识HashMap"><span class="nav-number">1.</span> <span class="nav-text">1. 认识HashMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-小结"><span class="nav-number">2.</span> <span class="nav-text">2. 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-ConcurrentHashMap"><span class="nav-number">3.</span> <span class="nav-text">3. ConcurrentHashMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-拓展补充"><span class="nav-number">4.</span> <span class="nav-text">4. 拓展补充</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-LinkedList"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 LinkedList</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-实现LRU缓存"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 实现LRU缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-参考文章"><span class="nav-number">5.</span> <span class="nav-text">5. 参考文章</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xiaodong.fan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sunnyxd"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("1A9EYx2AjuDFm8cBKttp4qRX-gzGzoHsz", "hYQpN5dO9GlfApBUN2iODUDW");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
