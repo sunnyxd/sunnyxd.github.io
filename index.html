@@ -341,7 +341,7 @@
       
         
           <h2 id="1-认识HashMap"><a href="#1-认识HashMap" class="headerlink" title="1. 认识HashMap"></a>1. 认识HashMap</h2><p>HashMap是用来存储key-value键值对的数据结构。<br>当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。</p>
-<p>它的底层采用entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。</p>
+<p>它的底层采用Entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。</p>
 <p>如果两个Entry的key的hashCode()返回值相同，那它们的存储位置相同。如果这两个Entry的key通过equals()比较返回true，新添加Entry的value将覆盖集合中原有Entry的value，但key不会覆盖。如果这两个Entry的key通过equals()比较返回false，新添加的Entry将与集合中原有Entry形成Entry链，而且新添加的Entry位于Entry链的头部。我们来看下图：
           <div class="post-more-link text-center">
             <a class="btn" href="/2016/07/24/Java集合类之HashMap原理小结/#more" rel="contents">

@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.sunnyxd.com/"/>
-  <updated>2016-07-24T09:05:52.378Z</updated>
+  <updated>2016-07-24T09:42:09.427Z</updated>
   <id>http://www.sunnyxd.com/</id>
   
   <author>
@@ -20,14 +20,14 @@
     <link href="http://www.sunnyxd.com/2016/07/24/Java%E9%9B%86%E5%90%88%E7%B1%BB%E4%B9%8BHashMap%E5%8E%9F%E7%90%86%E5%B0%8F%E7%BB%93/"/>
     <id>http://www.sunnyxd.com/2016/07/24/Java集合类之HashMap原理小结/</id>
     <published>2016-07-24T09:03:55.000Z</published>
-    <updated>2016-07-24T09:05:52.378Z</updated>
+    <updated>2016-07-24T09:42:09.427Z</updated>
     
     <content type="html">&lt;h2 id=&quot;1-认识HashMap&quot;&gt;&lt;a href=&quot;#1-认识HashMap&quot; class=&quot;headerlink&quot; title=&quot;1. 认识HashMap&quot;&gt;&lt;/a&gt;1. 认识HashMap&lt;/h2&gt;&lt;p&gt;HashMap是用来存储key-value键值对的数据结构。&lt;br&gt;当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。&lt;/p&gt;
-&lt;p&gt;它的底层采用entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。&lt;/p&gt;
+&lt;p&gt;它的底层采用Entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。&lt;/p&gt;
 &lt;p&gt;如果两个Entry的key的hashCode()返回值相同，那它们的存储位置相同。如果这两个Entry的key通过equals()比较返回true，新添加Entry的value将覆盖集合中原有Entry的value，但key不会覆盖。如果这两个Entry的key通过equals()比较返回false，新添加的Entry将与集合中原有Entry形成Entry链，而且新添加的Entry位于Entry链的头部。我们来看下图：&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/hashmap%E5%8E%9F%E7%90%86.png&quot; alt=&quot;hashmap%E5%8E%9F%E7%90%86.png&quot;&gt;&lt;br&gt;注：图片源自&lt;a href=&quot;http://www.admin10000.com/document/3322.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://www.admin10000.com/document/3322.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&quot;2-小结&quot;&gt;&lt;a href=&quot;#2-小结&quot; class=&quot;headerlink&quot; title=&quot;2. 小结&quot;&gt;&lt;/a&gt;2. 小结&lt;/h2&gt;&lt;p&gt;HashMap底层实现：&lt;code&gt;数组+链表+红黑树&lt;/code&gt;&lt;br&gt;通常，只使用entry数组存放键值对，key的hashcode()值决定它的存放位置，equals()方法决定最终的值。&lt;br&gt;如果hash算法设计的足够好，是不会发生碰撞冲突的，但实际中肯定不存在这么完美的事情。&lt;br&gt;当key的hashcode()相同，equals()方法返回不同时，会在相同的位置上形成一个链表(LinkedList)，当链表长度大于8的时候，会转化成红黑树，链表的查找的时间复杂度为O(n)，而红黑树为O(lgn)，会提高查询的性能。&lt;br&gt;当entry数组不足以容纳更多的元素的时候，以负载因子为0.75，数组长度为20来说，当数组元素数到达15的时候，会自动触发一次resize操作，会把旧的数据映射到新的哈希表，数组扩容到原来的2倍。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;&lt;em&gt;resize在多线程环境下，可能产生条件竞争&lt;/em&gt;&lt;/strong&gt;&lt;br&gt;因为如果两个线程都发现HashMap需要重新调整大小了，它们会同时试着调整大小。&lt;br&gt;在调整大小的过程中，存储在LinkedList中的元素的次序会反过来，因为移动到新的bucket位置的时候，HashMap并不会将元素放在LinkedList的尾部，而是放在头部，这是为了避免&lt;code&gt;尾部遍历&lt;/code&gt;(tail traversing，否则针对key的hashcode相同的Entry每次添加还要定位到尾节点)。&lt;br&gt;如果条件竞争发生了，可能出现环形链表。之后当我们get(key)操作时，就有可能发生死循环。&lt;br&gt;另外，既然都有并发的问题了，我们就该使用ConcurrentHashMap了。&lt;/p&gt;
+&lt;h2 id=&quot;2-小结&quot;&gt;&lt;a href=&quot;#2-小结&quot; class=&quot;headerlink&quot; title=&quot;2. 小结&quot;&gt;&lt;/a&gt;2. 小结&lt;/h2&gt;&lt;p&gt;HashMap底层实现：&lt;code&gt;数组+链表+红黑树&lt;/code&gt;&lt;br&gt;通常，只使用Entry数组存放键值对，key的hashcode()值决定它的存放位置，equals()方法决定最终的值。&lt;br&gt;如果hash算法设计的足够好，是不会发生碰撞冲突的，但实际中肯定不存在这么完美的事情。&lt;br&gt;当key的hashcode()相同，equals()方法返回不同时，会在相同的位置上形成一个链表，当链表长度大于8的时候，会转化成红黑树，链表的查找的时间复杂度为O(n)，而红黑树为O(lgn)，会提高查询的性能。&lt;br&gt;当Entry数组不足以容纳更多的元素的时候，以负载因子为0.75，数组长度为20来说，当数组元素数到达15的时候，会自动触发一次resize操作，会把旧的数据映射到新的哈希表，数组扩容到原来的2倍。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;resize在多线程环境下，可能产生条件竞争&lt;/em&gt;&lt;/strong&gt;&lt;br&gt;因为如果两个线程都发现HashMap需要重新调整大小了，它们会同时试着调整大小。&lt;br&gt;在调整大小的过程中，存储在链表中的元素的次序会反过来，因为移动到新的bucket位置的时候，HashMap并不会将元素放在链表的尾部，而是放在头部，这是为了避免&lt;code&gt;尾部遍历&lt;/code&gt;(tail traversing，否则针对key的hashcode相同的Entry每次添加还要定位到尾节点)。&lt;br&gt;如果条件竞争发生了，可能出现环形链表。之后当我们get(key)操作时，就有可能发生死循环。&lt;br&gt;另外，既然都有并发的问题了，我们就该使用ConcurrentHashMap了。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;em&gt;不使用HashTable的原因&lt;/em&gt;&lt;/strong&gt;&lt;br&gt;它使用synchronized来保证线程安全，会锁住整个哈希表。在线程竞争激烈的情况下效率非常低下，当一个线程访问HashTable的同步方法时，其它线程访问HashTable的同步方法只能进入阻塞或轮询状态。&lt;/p&gt;
 &lt;h2 id=&quot;3-ConcurrentHashMap&quot;&gt;&lt;a href=&quot;#3-ConcurrentHashMap&quot; class=&quot;headerlink&quot; title=&quot;3. ConcurrentHashMap&quot;&gt;&lt;/a&gt;3. ConcurrentHashMap&lt;/h2&gt;&lt;p&gt;核心：采用segment分段锁来保护不同段的数据，是线程安全且高效的。&lt;br&gt;当多线程访问容器里不同段的数据时，线程间就不会存在锁竞争，从而可以有效提高并发访问效率。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;em&gt;ConcurrentHashMap类图&lt;/em&gt;&lt;/strong&gt;&lt;br&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/concurrentHashMap.png&quot; alt=&quot;concurrentHashMap.png&quot;&gt;&lt;/p&gt;
@@ -47,7 +47,7 @@
     <summary type="html">
     
       &lt;h2 id=&quot;1-认识HashMap&quot;&gt;&lt;a href=&quot;#1-认识HashMap&quot; class=&quot;headerlink&quot; title=&quot;1. 认识HashMap&quot;&gt;&lt;/a&gt;1. 认识HashMap&lt;/h2&gt;&lt;p&gt;HashMap是用来存储key-value键值对的数据结构。&lt;br&gt;当我们创建HashMap的时候，如果不指定任何参数，它会为我们创建一个初始容量为16，负载因子为0.75的HashMap (load factor，记录数/数组长度)。当loadFactor达到0.75或指定值的时候，HashMap的总容量自动扩展一倍。&lt;/p&gt;
-&lt;p&gt;它的底层采用entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。&lt;/p&gt;
+&lt;p&gt;它的底层采用Entry数组来保存所有的key-value对。当需要存储一个Entry对象时，会根据Hash算法(key的hashCode值)来决定其存储位置；当需要取出一个Entry时，也会根据Hash算法找到其存储位置，直接取出该Entry。由此可见：HashMap之所以能快速存、取它所包含的Entry，完全类似于现实生活中母亲从小教我们的：不同的东西要放在不同的位置，需要时才能快速找到它。&lt;/p&gt;
 &lt;p&gt;如果两个Entry的key的hashCode()返回值相同，那它们的存储位置相同。如果这两个Entry的key通过equals()比较返回true，新添加Entry的value将覆盖集合中原有Entry的value，但key不会覆盖。如果这两个Entry的key通过equals()比较返回false，新添加的Entry将与集合中原有Entry形成Entry链，而且新添加的Entry位于Entry链的头部。我们来看下图：
     
     </summary>
