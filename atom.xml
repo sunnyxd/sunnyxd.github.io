@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.sunnyxd.com/"/>
-  <updated>2016-07-24T09:42:10.000Z</updated>
+  <updated>2018-01-19T13:15:40.999Z</updated>
   <id>http://www.sunnyxd.com/</id>
   
   <author>
@@ -14,6 +14,107 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>jvm类加载机制浅析</title>
+    <link href="http://www.sunnyxd.com/2018/01/19/jvm%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E6%B5%85%E6%9E%90/"/>
+    <id>http://www.sunnyxd.com/2018/01/19/jvm类加载机制浅析/</id>
+    <published>2018-01-19T13:00:10.000Z</published>
+    <updated>2018-01-19T13:15:40.999Z</updated>
+    
+    <content type="html">&lt;blockquote&gt;
+&lt;p&gt;定义：虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚   拟机直接使用的Java类型，这就是虚拟机的类加载机制。 &lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;何时加载一个类？&quot;&gt;&lt;a href=&quot;#何时加载一个类？&quot; class=&quot;headerlink&quot; title=&quot;何时加载一个类？&quot;&gt;&lt;/a&gt;何时加载一个类？&lt;/h2&gt;&lt;h3 id=&quot;有且只有5种情况必须立即对类进行初始化&quot;&gt;&lt;a href=&quot;#有且只有5种情况必须立即对类进行初始化&quot; class=&quot;headerlink&quot; title=&quot;有且只有5种情况必须立即对类进行初始化&quot;&gt;&lt;/a&gt;有且只有5种情况必须立即对类进行初始化&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;遇到new、getstatic、putstatic或invokestatic这4条字节码指令时，如果类没有进行过初始化，则需要先触发其初始化。&lt;/li&gt;
+&lt;li&gt;使用java.lang.reflect包的方法对类进行反射调用的时候，如果类没有进行过初始化，则需要先触发其初始化。&lt;/li&gt;
+&lt;li&gt;当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类初始化。&lt;/li&gt;
+&lt;li&gt;当虚拟机启动时，用户需要指定一个要执行的主类(包含main方法的)，虚拟机会优先初始化这个主类。&lt;/li&gt;
+&lt;li&gt;当使用JDK1.7的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解析结果是REF_getStatic，REF_putStatic，REF_invokeStatic等时，这个方法的类还没有进行过初始化，则需要先触发其初始化。&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;注意：对于这5种会触发类进行初始化的场景，虚拟机规范中使用了一个很强烈的限定语：“有且只有”，这5种场景中的行为称为对一个类进行主动引用。除此之外，所有引用类的方式都不会触发初始化，称为被动引用。&lt;/p&gt;
+&lt;h3 id=&quot;被动引用举例&quot;&gt;&lt;a href=&quot;#被动引用举例&quot; class=&quot;headerlink&quot; title=&quot;被动引用举例&quot;&gt;&lt;/a&gt;被动引用举例&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;使用子类引用父类的静态字段，只会触发父类的初始化，而不会初始化子类。&lt;/li&gt;
+&lt;li&gt;通过数组定义来引用类，不会触发类的初始化(数组本身不通过类加载创建，它由jvm直接创建)。&lt;/li&gt;
+&lt;li&gt;引用类中的常量不会导致该类的初始化(常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;类加载过程中都做了哪些事情？&quot;&gt;&lt;a href=&quot;#类加载过程中都做了哪些事情？&quot; class=&quot;headerlink&quot; title=&quot;类加载过程中都做了哪些事情？&quot;&gt;&lt;/a&gt;类加载过程中都做了哪些事情？&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/jvm_%E7%B1%BB%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png&quot; alt=&quot;jvm_类的生命周期&quot;&gt;&lt;/p&gt;
+&lt;h3 id=&quot;加载&quot;&gt;&lt;a href=&quot;#加载&quot; class=&quot;headerlink&quot; title=&quot;加载&quot;&gt;&lt;/a&gt;加载&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;通过类全限定名获取定义此类的二进制字节流（多种获取方式：class文件、动态代理、网络、其它文件生成等）。&lt;/li&gt;
+&lt;li&gt;将它代表的静态存储接口转化为方法区的运行时数据句结构。&lt;/li&gt;
+&lt;li&gt;最终在内存中生成一个class对象(虽然是对象，但是不在堆里)，作为方法区这个类的各种数据的访问入口。&lt;br&gt;注意：除了在加载阶段用户应用程序可且通过自定义类加载器参与之外，其余动作完全由虚拟机主导和控制。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&quot;验证&quot;&gt;&lt;a href=&quot;#验证&quot; class=&quot;headerlink&quot; title=&quot;验证&quot;&gt;&lt;/a&gt;验证&lt;/h3&gt;&lt;p&gt;确保class文件的字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;文件格式验证&lt;/li&gt;
+&lt;li&gt;元数据验证&lt;/li&gt;
+&lt;li&gt;字节码验证&lt;/li&gt;
+&lt;li&gt;符号引用验证&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;可以使用-X:verify:none参数来关闭，以缩短虚拟机类加载的时间。&lt;/p&gt;
+&lt;h3 id=&quot;准备&quot;&gt;&lt;a href=&quot;#准备&quot; class=&quot;headerlink&quot; title=&quot;准备&quot;&gt;&lt;/a&gt;准备&lt;/h3&gt;&lt;p&gt;为类变量分配内存并设置类变量初始值(零值)。&lt;br&gt;特殊情况：常量会在准备阶段直接赋值。&lt;/p&gt;
+&lt;h3 id=&quot;解析&quot;&gt;&lt;a href=&quot;#解析&quot; class=&quot;headerlink&quot; title=&quot;解析&quot;&gt;&lt;/a&gt;解析&lt;/h3&gt;&lt;p&gt;将常量池内的符号引用替换为直接引用。解析动作主要针对类或接口、字段、类方法、接口方法、 (方法类型、方法句柄和调用点限定符)7类符号引用进行。jvm一般会对第一次解析的结果进行缓存，从而避免解析动作重复进行。&lt;br&gt;注意：invokeDynamic指令是在程序实际运行到这条指令的时候，解析动作才能进行，所以会进行多次解析。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;小贴士&lt;/strong&gt;&lt;br&gt;java代码在进行javac编译的时候，并不像c、c++那样有“连接”这一步，而是在虚拟机加载class文件的时候进行动态连接。也就是说，在class文件中不会保存各个方法、字段的最终内存布局信息，因此这些字段、方法的符号引用不经过运行期转换的话无法得到真正的内存入口地址，也就无法直接被虚拟机使用。当虚拟机运行时，需要从常量池获得对应的符号引用，再在类创建时或运行时解析、翻译到具体的内存地址之中。&lt;/p&gt;
+&lt;h3 id=&quot;初始化&quot;&gt;&lt;a href=&quot;#初始化&quot; class=&quot;headerlink&quot; title=&quot;初始化&quot;&gt;&lt;/a&gt;初始化&lt;/h3&gt;&lt;p&gt;执行类构造器clinit()方法(注意与类的构造函数不一样)，为所有类变量赋值并执行静态语句块中的语句。如果父类没有初始化，会先初始化父类。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;注意&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;虚拟机会保证一个类的init()方法在多线程环境中被正确的加锁、同步，如果多个线程同时去初始化一个类，那么只会有一个线程去执行这个类的init()方法，其他线程都需要阻塞等待，直到活动线程执行init()方法完毕。&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;静态变量定义之前只能赋值不能访问。&lt;br&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/jvm_code_1.png&quot; alt=&quot;jvm_code_1&quot;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;代码坑&lt;br&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/jvm_code_2.png&quot; alt=&quot;jvm_code_2&quot;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;类加载器与双亲委派模型&quot;&gt;&lt;a href=&quot;#类加载器与双亲委派模型&quot; class=&quot;headerlink&quot; title=&quot;类加载器与双亲委派模型&quot;&gt;&lt;/a&gt;类加载器与双亲委派模型&lt;/h2&gt;&lt;h3 id=&quot;树状结构图&quot;&gt;&lt;a href=&quot;#树状结构图&quot; class=&quot;headerlink&quot; title=&quot;树状结构图&quot;&gt;&lt;/a&gt;树状结构图&lt;/h3&gt;&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/jvm_%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.png&quot; alt=&quot;jvm_类加载器&quot;&gt;&lt;/p&gt;
+&lt;p&gt;对hotspot而言，分两类不同的类加载器：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;启动类加载器(c++实现)，作为虚拟机的一部分；&lt;/li&gt;
+&lt;li&gt;其它类加载器(java实现)，独立于虚拟机外部，均继承自抽象类java.lang.ClassLoader。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;细分：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;引导类加载器 (bootstrap class loader)：它用来加载Java的核心库，是用原生代码来实现的，并不继承自 java.lang.ClassLoader。&lt;/li&gt;
+&lt;li&gt;扩展类加载器 (extensions class loader)：它用来加载Java的扩展库。Java虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载Java类。&lt;/li&gt;
+&lt;li&gt;系统类加载器 (system class loader)：它根据Java应用的类路径 (CLASSPATH) 来加载Java类。一般来说，Java应用的类都是由它来完成加载的。可以通过ClassLoader.getSystemClassLoader()来获取它。&lt;br&gt;除了系统提供的类加载器以外，开发人员可以通过继承 java.lang.ClassLoader类的方式实现自己的类加载器，以满足一些特殊的需求。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;双亲委派模型的工作过程&quot;&gt;&lt;a href=&quot;#双亲委派模型的工作过程&quot; class=&quot;headerlink&quot; title=&quot;双亲委派模型的工作过程&quot;&gt;&lt;/a&gt;双亲委派模型的工作过程&lt;/h3&gt;&lt;p&gt;如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此。因此，所有的加载请求最终都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求时，子加载器才会尝试自己去加载。&lt;br&gt;这就意味着真正完成类的加载工作的类加载器和启动这个加载过程的类加载器，有可能不是同一个。真正完成类的加载工作是通过调用ClassLoader的defineClass来实现的；而启动类的加载过程是通过调用loadClass来实现的。前者称为一个类的定义加载器(defining loader)，后者称为初始加载器(initiating loader)。在Java 虚拟机判断两个类是否相同的时候，使用的是类的定义加载器。也就是说，哪个类加载器启动类的加载过程并不重要，重要的是最终定义这个类的加载器。两种类加载器的关联之处在于：一个类的定义加载器是它引用的其它类的初始加载器。如类com.example.Outer引用了类com.example.Inner，则由类com.example.Outer的定义加载器负责启动类 com.example.Inner的加载过程。&lt;br&gt;方法loadClass()抛出的是 java.lang.ClassNotFoundException异常；方法 defineClass()抛出的是 java.lang.NoClassDefFoundError异常。&lt;br&gt;类加载器在成功加载某个类之后，会把得到的java.lang.Class类的实例缓存起来。下次再请求加载该类的时候，类加载器会直接使用缓存的类的实例，而不会尝试再次加载。也就是说，对于一个类加载器实例来说，相同全名的类只加载一次，即loadClass方法不会被重复调用。&lt;/p&gt;
+&lt;p&gt;小贴士：Java虚拟机是如何判定两个Java类是相同的？&lt;br&gt;Java虚拟机不仅要看类的全名是否相同，还要看加载此类的类加载器是否一样。只有两者都相同的情况，才认为两个类是相同的。即便是同样的字节代码，被不同的类加载器加载之后所得到的类，也是不同的。&lt;/p&gt;
+&lt;h3 id=&quot;线程上下文类加载器&quot;&gt;&lt;a href=&quot;#线程上下文类加载器&quot; class=&quot;headerlink&quot; title=&quot;线程上下文类加载器&quot;&gt;&lt;/a&gt;线程上下文类加载器&lt;/h3&gt;&lt;p&gt;线程上下文类加载器(context class loader)是从JDK1.2开始引入的。&lt;br&gt;类java.lang.Thread中的方法getContextClassLoader()和setContextClassLoader(ClassLoader cl)用来获取和设置线程的上下文类加载器。如果没有通过setContextClassLoader(ClassLoader cl)方法进行设置的话，线程将继承其父线程的上下文类加载器。Java应用运行的初始线程的上下文类加载器是系统类加载器。在线程中运行的代码可以通过此类加载器来加载类和资源。&lt;br&gt;前面提到的类加载器的双亲委派模型并不能解决Java应用开发中会遇到的类加载器的全部问题。Java提供了很多服务提供者接口(Service Provider Interface，SPI)，允许第三方为这些接口提供实现。常见的SPI有JDBC、JCE、JNDI、JAXP和JBI等。这些SPI的接口由Java核心库来提供，如JAXP的SPI接口定义包含在javax.xml.parsers包中。这些SPI的实现代码很可能是作为Java应用所依赖的jar包被包含进来，可以通过类路径(CLASSPATH)来找到，如实现了JAXP SPI的Apache Xerces所包含的jar包。SPI接口中的代码经常需要加载具体的实现类。而问题在于，SPI的接口是Java核心库的一部分，是由引导类加载器来加载的；SPI实现的Java类一般是由系统类加载器来加载的。引导类加载器是无法找到SPI的实现类的，因为它只加载Java的核心库。它也不能代理给系统类加载器，因为它是系统类加载器的祖先类加载器。也就是说，类加载器的双亲委派模型无法解决这个问题。&lt;br&gt;线程上下文类加载器正好解决了这个问题。如果不做任何的设置，Java应用的线程的上下文类加载器默认就是系统上下文类加载器。在SPI接口的代码中使用线程上下文类加载器，就可以成功的加载到SPI实现的类。线程上下文类加载器在很多SPI的实现中都会用到。&lt;/p&gt;
+&lt;h3 id=&quot;为什么要使用双亲委派模型？&quot;&gt;&lt;a href=&quot;#为什么要使用双亲委派模型？&quot; class=&quot;headerlink&quot; title=&quot;为什么要使用双亲委派模型？&quot;&gt;&lt;/a&gt;为什么要使用双亲委派模型？&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;保证Java核心库的类型安全：以java.lang.Object这个类为例，如果这个加载过程由Java应用自己的类加载器来完成的话，很可能就存在多个版本的 java.lang.Object类，而且这些类之间是不兼容的。通过双亲委派模型，对于Java核心库的类的加载工作由引导类加载器来统一完成，保证了Java应用所使用的都是同一个版本的Java核心库的类，是互相兼容的。这样，可以防止自定义类加载器对java核心类库进行重写带来的安全隐患。&lt;/li&gt;
+&lt;li&gt;避免重复加载，导致方法区过度膨胀。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;Tomcat类加载器&quot;&gt;&lt;a href=&quot;#Tomcat类加载器&quot; class=&quot;headerlink&quot; title=&quot;Tomcat类加载器&quot;&gt;&lt;/a&gt;Tomcat类加载器&lt;/h2&gt;&lt;h3 id=&quot;架构图&quot;&gt;&lt;a href=&quot;#架构图&quot; class=&quot;headerlink&quot; title=&quot;架构图&quot;&gt;&lt;/a&gt;架构图&lt;/h3&gt;&lt;p&gt;&lt;img src=&quot;http://7xnxzw.com1.z0.glb.clouddn.com/jvm_tomcat%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.png&quot; alt=&quot;jvm_tomcat类加载器&quot;&gt;&lt;/p&gt;
+&lt;h3 id=&quot;为什么需要自定义类加载器？&quot;&gt;&lt;a href=&quot;#为什么需要自定义类加载器？&quot; class=&quot;headerlink&quot; title=&quot;为什么需要自定义类加载器？&quot;&gt;&lt;/a&gt;为什么需要自定义类加载器？&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;可用于加密：众所周知，java代码很容易被反编译，如果你需要把自己的代码进行加密，可以先将编译后的代码用某种加密算法加密，然后实现自己的类加载器，负责将这段加密后的代码还原。&lt;/li&gt;
+&lt;li&gt;从非标准的来源加载代码：例如你的部分字节码是放在数据库中甚至是网络上的，就可以自己写个类加载器，从指定的来源加载类。&lt;/li&gt;
+&lt;li&gt;类库隔离：同一服务器下的多个应用程序依赖的类库版本可能不同，自定义类加载器可以做到类库隔离。&lt;/li&gt;
+&lt;li&gt;可以卸载类：比如load之后只使用一次的类&lt;/li&gt;
+&lt;li&gt;可以在类加载前后做些额外的事情&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;注意：&lt;br&gt;每个Web应用都有一个对应的类加载器实例。该类加载器也使用双亲委派模型，所不同的是它是首先尝试去加载某个类，如果找不到再代理给父类加载器。这与一般类加载器的顺序是相反的。这是 Java Servlet规范中的推荐做法，其目的是&lt;code&gt;使得Web应用自己的类的优先级高于Web容器提供的类&lt;/code&gt;。这种模式的一个例外是：Java核心库的类是不在查找范围之内的。这也是为了保证Java核心库的类型安全。&lt;/p&gt;
+&lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;p&gt;深入理解Java虚拟机：JVM高级特性与最佳实践（最新第二版）&lt;br&gt;深入探讨Java类加载器：&lt;a href=&quot;https://www.ibm.com/developerworks/cn/java/j-lo-classloader/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;https://www.ibm.com/developerworks/cn/java/j-lo-classloader/&lt;/a&gt;&lt;/p&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;blockquote&gt;
+&lt;p&gt;定义：虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚   拟机直接使用的Java类型，这就是虚拟机的类加载机制。 &lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;何时加载一个类？&quot;&gt;&lt;a href=&quot;#何时加载一个类？&quot; class=&quot;headerlink&quot; title=&quot;何时加载一个类？&quot;&gt;&lt;/a&gt;何时加载一个类？&lt;/h2&gt;&lt;h3 id=&quot;有且只有5种情况必须立即对类进行初始化&quot;&gt;&lt;a href=&quot;#有且只有5种情况必须立即对类进行初始化&quot; class=&quot;headerlink&quot; title=&quot;有且只有5种情况必须立即对类进行初始化&quot;&gt;&lt;/a&gt;有且只有5种情况必须立即对类进行初始化&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;遇到new、getstatic、putstatic或invokestatic这4条字节码指令时，如果类没有进行过初始化，则需要先触发其初始化。&lt;/li&gt;
+&lt;li&gt;使用java.lang.reflect包的方法对类进行反射调用的时候，如果类没有进行过初始化，则需要先触发其初始化。&lt;/li&gt;
+&lt;li&gt;当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类初始化。&lt;/li&gt;
+&lt;li&gt;当虚拟机启动时，用户需要指定一个要执行的主类(包含main方法的)，虚拟机会优先初始化这个主类。&lt;/li&gt;
+&lt;li&gt;当使用JDK1.7的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解析结果是REF_getStatic，REF_putStatic，REF_invokeStatic等时，这个方法的类还没有进行过初始化，则需要先触发其初始化。
+    
+    </summary>
+    
+      <category term="JVM相关" scheme="http://www.sunnyxd.com/categories/JVM%E7%9B%B8%E5%85%B3/"/>
+    
+    
+      <category term="类加载机制 jvm基础" scheme="http://www.sunnyxd.com/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6-jvm%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
   
   <entry>
     <title>Java集合类之HashMap原理小结</title>
